@@ -25,7 +25,7 @@ class PrimalDual(Policy):
             if self.args.load:
                 self.load()
             else:
-                # Initialize dual variables
+                # Initialize dual variables: for each inventory node and SKU (represent penalties for using inventory at specific nodes)
                 self._dual_lams = torch.zeros((self.args.num_inv_nodes, self.args.num_skus))
             
         # Hyperparameters defined in the paper
@@ -38,12 +38,15 @@ class PrimalDual(Policy):
 
     def __call__(self, 
             inv_nodes: list,
-            demand_node: DemandNode) -> PolicyResults:
+            demand_node: DemandNode,
+            skus_tensor: torch.Tensor) -> PolicyResults:
+        
         """Create a fulfillment decision for the DemandNode using the primal-dual policy.
         
         Args:
             list of InventoryNodes.
             deamnd_node: the DeamndNode representing the current order.
+            skus_tensor: tensor representing the SKUs.
         
         Returns:
             the fulfillment decision results.
@@ -62,16 +65,17 @@ class PrimalDual(Policy):
         # Keep up with fulfillment requests for every inventory node
         fulfill_plan = FulfillmentPlan()
         
-        for inv_prod in demand_node.inv.items():
-            for _ in range(inv_prod.quantity):
+        for inv_prod in demand_node.inv.items(): # for each product in the order
+            for _ in range(inv_prod.quantity): # for each quantity of the product
 
+            
                 # Attempt to allocate item to every inventory node
                 best_pd_obj_val = None
                 best_inv_node_id = None
                 best_reward = None
                 for inv_node in inv_nodes:
                     # Number of products of this type at node
-                    cur_quant = inv_node.inv.product_quantity(inv_prod.sku_id)
+                    cur_quant = inv_node.inv.product_quantity(inv_prod.sku_id) 
 
                     # Amount currently allocated to node
                     fulfill_quant = fulfill_plan.fulfill_quantity(
@@ -114,7 +118,7 @@ class PrimalDual(Policy):
         return PolicyResults(fulfill_plan, exps)
 
     def train(self):
-        """Update the dual lambda values."""
+        """Update the dual lambda values based on experience."""
         for exp in self._exps:
             denom = self._alpha_1 * max(self._init_inv[exp.action, exp.state], 1) + self._alpha_2
             

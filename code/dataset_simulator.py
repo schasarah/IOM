@@ -18,6 +18,14 @@ class DatasetSimulator:
         self._inv_node_loc_df = pd.read_csv(inv_node_loc_csv)
         self._orders =  pd.read_csv(orders_csv)
         self._init_demand()
+<<<<<<< Updated upstream
+=======
+        c_1 = (self._loc_df["geolocation_lat"].min(), self._loc_df["geolocation_lng"].min()) 
+        c_2 = (self._loc_df["geolocation_lat"].max(), self._loc_df["geolocation_lng"].max())
+        self._max_dist = ((c_1[0] - c_2[0]) ** 2 + (c_1[1] - c_2[1]) ** 2) ** 0.5 
+
+       
+>>>>>>> Stashed changes
         self._coord_bounds = max(
             abs(self._loc_df["geolocation_lat"].min()),
             abs(self._loc_df["geolocation_lat"].max()),
@@ -164,15 +172,24 @@ class DatasetSimulator:
     def cur_sku_distr(self):
         return self._cur_sku_distr.float().to(device)
 
-            
-
+    
 class TestDatasetSimulator(DatasetSimulator):
     def __init__(self,
                 args,
+<<<<<<< Updated upstream
                 loc_csv = "data/olist_data/location/demand_locs.csv",
                 inv_node_loc_csv="data/olist_data/location/inv_node_locs.json",
                 orders_csv="data/olist_data/orders/val_orders.csv",
                 inv_stock_json="data/olist_data/inv_stock/test_inv_node_stock.json"):
+=======
+                #loc_csv = "data/olist_data/location/val_customers.csv",
+                loc_csv = "data/olist_geolocation_dataset.csv",
+                #inv_node_loc_csv="data/olist_data/locastion/inv_node_locs.json",
+                #orders_csv="data/olist_data/orders/val_orders.csv",
+                orders_csv="data/olist_order_items_dataset.csv",
+                #inv_stock_json="data/olist_data/inv_stock/val_inv_node_stock.json"):
+                inv_stock_json="data/olist_products_dataset.csv"):
+>>>>>>> Stashed changes
 
         self.args = args
         self._orders = pd.read_csv(orders_csv)
@@ -198,12 +215,65 @@ class TestDatasetSimulator(DatasetSimulator):
     # def _load_locs(self, loc_json: str) -> list:
     #     """Load inventory node locations.
         
+<<<<<<< Updated upstream
     #     Returns:
     #         a list of city 2D inventory node locations.
     #     """
     #     inv_locs = []
     #     with open(self.args.inv_loc) as f:
     #         self.inv_locs = json.load(f)
+=======
+        prev_order_id = None
+        cur_demand_idx = 0
+        for order_id, p_id  in zip(self._orders.order_id, self._orders.product_id):
+            p_id = int(p_id)
+            # Iterate over rows
+            # If this is the same order
+            ##  if this is the same p_id
+            if prev_order_id is not None and prev_order_id != order_id:
+                # Create a demand node from the previous order
+                loc = Location(
+                    Coordinates(
+                        float(cust_locs.iloc[cur_demand_idx]["geolocation_lat"]),
+                        float(cust_locs.iloc[cur_demand_idx]["geolocation_lng"])))
+                
+                self._demand_nodes.append(
+                    DemandNode(demand_prods_dict.values(), loc, self.num_skus))
+                
+                demand_prods_dict = {}
+                cur_demand_idx += 1
+
+            if p_id not in demand_prods_dict:
+                demand_prods_dict[p_id] = InventoryProduct(p_id, 1)
+            else:
+                demand_prods_dict[p_id].quantity += 1
+
+            prev_order_id = order_id
+
+    def _init_demand(self):
+        """Initialize properties of the demand."""
+        self.num_skus = 2000
+        # Create the PID distribution
+        pid_count = torch.zeros(
+            self.num_skus, 
+            dtype=torch.float64, device=device)
+        
+        v = self._orders.product_id.value_counts()
+
+        
+
+        pid_count[v.keys()] = torch.tensor(v.tolist(), dtype=torch.float64, device=device)
+        print("pid_count.sum()", pid_count.sum())
+
+        
+        # # TODO: DELETE THIS
+        # pid_count = pid_count[:500]
+        
+        self._sku_distr = (pid_count / pid_count.sum())
+
+        print("self._sku_distr", self._sku_distr, self._sku_distr.sum())
+        self._cur_sku_distr = self._sku_distr.clone().cpu().detach()
+>>>>>>> Stashed changes
 
 
     def _gen_demand_node(self):

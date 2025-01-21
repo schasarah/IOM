@@ -12,10 +12,19 @@ from nodes import  DemandNode
 from reward_manager import RewardManager
 from naive_policy import NaivePolicy
 from random_policy import RandomPolicy
+<<<<<<< Updated upstream
 from dqn_policy import DQNTrainer
 from dqn_emb_policy import DQNEmbTrainer
+=======
+#from dqn_policy import DQNTrainer
+#from dqn_emb_policy import DQNEmbTrainer
+#from value_lookhead_policy import ValueLookaheadPolicy
+#from value_lookhead_emb_policy import ValueLookaheadEmbPolicy
+
+#from dqn_lookhead_policy import DQNLookaheadTrainer
+>>>>>>> Stashed changes
 from primal_dual_policy import PrimalDual
-from actor_critic_policy import ActorCriticPolicy
+#from actor_critic_policy import ActorCriticPolicy
 from visual import Visual
 from dataset_simulator import DatasetSimulator
 
@@ -234,10 +243,22 @@ class Evaluator:
 
     def run(self):
         """Evaluate the policies."""
+<<<<<<< Updated upstream
+=======
+        print("Run evaluation.")
+
+>>>>>>> Stashed changes
         eval_results = EvaluationResults()
-        for i in tqdm(range(self.args.eval_episodes)):
+        for i in tqdm(range(self.args.eval_episodes)): 
             # Generate demand nodes for this episode
+<<<<<<< Updated upstream
             demand_nodes = self._gen_demand_nodes()
+=======
+            demand_nodes = self._gen_demand_nodes() # list of DemandNode objects
+
+            sku_distrs = []
+            cur_policy_i = 0
+>>>>>>> Stashed changes
             for policy_name, policy in self._policies.items():
                 print("policy_name", policy_name)
                 # Run an episode
@@ -252,8 +273,28 @@ class Evaluator:
                         else:
                             policy_results = policy(self.sim._inv_nodes, demand_node, torch.tensor([1/self.args.num_skus]).repeat(self.args.num_skus).to(device), argmax=True)
                     else:
+<<<<<<< Updated upstream
                         policy_results = policy(self.sim._inv_nodes, demand_node)
   
+=======
+                        if cur_policy_i == 0:
+                            
+                            if self.dataset_sim is not None:
+                                self.dataset_sim.init_sku_distr(self.sim._inv_node_man.stock)
+                                sku_distrs.append(self.dataset_sim.cur_sku_distr.float().clone())
+                            else:
+                                # Handle the case where dataset_sim is None
+                                # Initialize sku_distrs with default values or based on sim
+                                default_sku_distr = torch.tensor([1 / self.args.num_skus]).repeat(self.args.num_skus).to(device)
+                                sku_distrs.append(default_sku_distr.clone())
+                        if policy_name == "primal":
+                            policy_results = policy(self.sim._inv_nodes, demand_node, sku_distrs[-1])
+                            print("Fulfillment decisions of primal dual policy: ", policy_results.fulfill_plan)
+                        else: 
+                            policy_results = policy(self.sim._inv_nodes, demand_node)
+                            
+
+>>>>>>> Stashed changes
                     if self.visual:
                         self.visual.render_order(demand_node, policy_results, policy_name)
 

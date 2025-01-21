@@ -49,7 +49,7 @@ class Node:
             inv_prods: list of InventoryProducts for either an order or inventory.
             loc: Location of the node.
         """
-        self._inv = Inventory(inv_prods, num_skus)
+        self._inv = Inventory(inv_prods)
         self._loc = loc
 
     @property
@@ -73,82 +73,50 @@ class DemandNode(Node):
 
 class Inventory:
     """Container for collection of SKUs."""
-    def __init__(self, inv_prods: list = None, num_skus: int = 0):
-        self._inv_dict = {}
-        
-        # Store inventory in list for faster look up time
-        if num_skus > 0:
-            self._inv_list = [0 for _ in range(num_skus)]
-        else:
-            self._inv_list = []
+    def __init__(self, inv_prods: list = None):
+        self._inv_dict = {}  # Dictionary to store inventory with SKU IDs as keys
+        self._inv_size = 0  # Total quantity of all products
 
-        # Number of items currently in inventory
-        self._inv_size = 0
-        
         # Populate the initial inventory
-        if inv_prods:    
+        if inv_prods:
             for inv_prod in inv_prods:
                 self.add_product(inv_prod)
-    
-    def add_product(self, inv_prod: InventoryProduct):
-        """Add products and quantites of each."""
-        if inv_prod.quantity < 0:
-            raise Exception("Product quantity cant be less than 0.")
 
-        if inv_prod.sku_id is None:
-            raise Exception("Invalid SKU ID.")
+    def add_product(self, inv_prod: InventoryProduct):
+        """Add products and quantities of each."""
+        if inv_prod.quantity < 0:
+            raise Exception("Product quantity can't be less than 0.")
 
         if inv_prod.sku_id not in self._inv_dict:
             self._inv_dict[inv_prod.sku_id] = inv_prod.quantity
         else:
             self._inv_dict[inv_prod.sku_id] += inv_prod.quantity
-        if self.inv_list:
-            self._inv_list[inv_prod.sku_id] += inv_prod.quantity
-        
-        # Update inventory size
+
         self._inv_size += inv_prod.quantity
-    
+
     def remove_product(self, inv_prod: InventoryProduct):
-        """Remove quantity of a particular SKU"""
-        if inv_prod.sku_id not in self._inv_dict or self._inv_dict[inv_prod.sku_id] < inv_prod.quantity: 
-            raise Exception("Tried to remove unavailable product.")
-        
+        """Remove a quantity of a particular SKU."""
+        if inv_prod.sku_id not in self._inv_dict or self._inv_dict[inv_prod.sku_id] < inv_prod.quantity:
+            raise Exception(f"Tried to remove unavailable product {inv_prod.sku_id}.")
+
         self._inv_dict[inv_prod.sku_id] -= inv_prod.quantity
         self._inv_size -= inv_prod.quantity
-        if self._inv_list:
-            self._inv_list[inv_prod.sku_id] -= inv_prod.quantity
 
-        # Sanity check    
-        assert self._inv_size >= 0
-    
-    
-    def product_quantity(self, sku_id: int) -> int:
-        """Get the quatity for a SKU."""
-        if sku_id not in self._inv_dict:
-            return 0
-        else:
-            return self._inv_dict[sku_id]
+    def product_quantity(self, sku_id):
+        """Get the quantity for a SKU."""
+        return self._inv_dict.get(sku_id, 0)
 
     @property
     def inv_size(self):
         """Get the total quantity."""
         return self._inv_size
-    
-    @property
-    def sku_ids(self):
-        return self._inv_dict.keys()
-
-    @property
-    def inv_list(self):
-        return self._inv_list
 
     def items(self):
-        """Genrator for the non-item products the inventory."""
-        inv_prods = [InventoryProduct(sku_id, quantity) for sku_id, quantity in self._inv_dict.items()]
-        inv_prods = sorted(inv_prods, key=lambda p: p.sku_id)
-        for inv_prod in inv_prods: 
-            if inv_prod.quantity > 0:
-                yield inv_prod
+        """Generate InventoryProduct objects from the inventory."""
+        for sku_id, quantity in self._inv_dict.items():
+            if quantity > 0:
+                yield InventoryProduct(sku_id, quantity)
+
 
 
 class InventoryNode(Node):

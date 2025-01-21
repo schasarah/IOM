@@ -11,8 +11,10 @@ import torch
 
 class Simulator:
     """Simulator for simulating omni-channel order fulfillment. """
+    # The simulator integrates a dataset simulator (dataset_sim) if one is available, or it generates scenarios on the fly.
+
     def __init__(self, args, policy=None, dataset_sim=None):
-        """Initilize the simulator.
+        """Initilize the simulator. Sets up policies, inventory nodes, and optional dataset simulation.
         
         Args:
             args: Namespace of CLI arguments.
@@ -48,7 +50,32 @@ class Simulator:
 
         if self._dataset_sim is not None:
             self._dataset_sim.init_sku_distr(self._inv_node_man.stock)
+    
+    def _reset(self):
+        """Reset simulator for next episode"""
+        # Check if inventory is still left
+        if self._inv_node_man.inv.inv_size > 0 and not self.args.eval:
+            # Indicate to the policy that 
+            self._policy.early_stop_handler()
+        
+        # Empty the inventory
+        self._inv_node_man.empty()
 
+        if self._dataset_sim is not None and not self.args.eval:
+            self._dataset_sim.reset()
+
+        # Restock the inventory in the inventory nodes
+        self._restock_inv()
+
+        if self._dataset_sim is not None:
+            # Reset the SKU distribution 
+            self._dataset_sim.init_sku_distr(self._inv_node_man.stock)
+
+        # Reset policy for new episode
+        if self._policy:
+            self._policy.reset()
+
+    # Inventory nodes
     def _init_inv_nodes(self):
         """initialize the inventory nodes."""
         
@@ -78,6 +105,7 @@ class Simulator:
 
         self._inv_node_man = InventoryNodeManager(self._inv_nodes, self.args.num_skus)
 
+<<<<<<< Updated upstream
     def _reset(self):
         """Reset simulator for next episode"""
         # Check if inventory is still left
@@ -99,6 +127,8 @@ class Simulator:
         if self._policy:
             self._policy.reset()
 
+=======
+>>>>>>> Stashed changes
     def _gen_inv_node(self, loc: Location = None) -> InventoryNode:
         """Generate an inventory node.
         
@@ -173,7 +203,6 @@ class Simulator:
 
         return inv_prods
 
-
     def _restock_inv(self):
         """Restock (i.e., reinitialize) the inventory at all of the inventory nodes."""
         
@@ -203,6 +232,8 @@ class Simulator:
             for inv_prod in inv_prods:
                 self._inv_node_man.add_product(i, inv_prod)
 
+
+    # Demand nodes
     def _gen_demand_node(self, stock: list = None):
         """Generate a demand node.
         
@@ -247,7 +278,6 @@ class Simulator:
             inv_prods.append(InventoryProduct(item.sku_id, num_demand))
 
         return DemandNode(inv_prods, loc, self.args.num_skus)
-
 
     def _sample_circle_point(self):
         """Generate a point on within a circle centered at (0,0).
@@ -378,8 +408,15 @@ class Simulator:
         """Run the simulator for self.args.episodes episodes."""
 
         for e_i in range(self.args.episodes):
+<<<<<<< Updated upstream
             rewards = []
             for t in range(self.args.order_max):
+=======
+            print("Episode e_i", e_i)
+            rewards = []
+            cur_order_max = random.randint(16, self.args.order_max) # Randomize max number of orders per episode
+            for t in range(cur_order_max): 
+>>>>>>> Stashed changes
                 if self._inv_node_man.inv.inv_size <= 0:
                     break
 
@@ -387,13 +424,16 @@ class Simulator:
                     demand_node = self._dataset_sim.gen_demand_node(
                         self._inv_node_man.inv._inv_dict)
                 else:
-                    demand_node = self._gen_demand_node()
+                    demand_node = self._gen_demand_node()  # Generate the demand node
 
+            
                 # Get the fulfillment plan
                 if self._dataset_sim:
                     policy_results = self._policy(self._inv_nodes, demand_node, self._dataset_sim._sku_distr.float())
                 else:
+                    #print("No dataset_sim")
                     policy_results = self._policy(self._inv_nodes, demand_node, torch.tensor([1/self.args.num_skus]).repeat(self.args.num_skus).to(device))
+                    
                 self.remove_products(policy_results)
 
                 rewards.extend(

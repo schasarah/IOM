@@ -92,14 +92,14 @@ class Visual:
         )
 
         # Create the background
-        self.bg_img = pygame.image.load("../pics/maps/pacific_northwest_blank.png")
+        self.bg_img = pygame.image.load("./pics/maps/pacific_northwest_blank.png")
         # Resize background
         self.bg_img = pygame.transform.scale(self.bg_img, (self.width, self.height))
 
         # Load the icons
         self.icons = {
-            "shirt" : pygame.image.load("../pics/icons/shirt_icon.png"),
-            "shoe" : pygame.image.load("../pics/icons/shoe_icon.png")
+            "shirt" : pygame.image.load("./pics/icons/shirt_icon.png"),
+            "shoe" : pygame.image.load("./pics/icons/shoe_icon.png")
         }
 
         # Resize the icons

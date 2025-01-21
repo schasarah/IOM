@@ -26,6 +26,14 @@ class FulfillmentPlan:
         # Keep up with all the items in the plan 
         self._inv = Inventory()
 
+    def __str__(self):
+        plan_str = "Fulfillment Plan:\n"
+        for inv_node_id, fulfillment in self._fulfillments.items():
+            plan_str += f"  Inventory Node {inv_node_id}:\n"
+            for product in fulfillment.inv.items():
+                plan_str += f"    SKU: {product.sku_id}, Quantity: {product.quantity}\n"
+        return plan_str
+
     def add_product(self, inv_node_id: str, inv_prod: InventoryProduct):
         """Add products to be fulfilled by a given inventory node.
         

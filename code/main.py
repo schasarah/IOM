@@ -2,14 +2,25 @@ import argparse
 
 from simulator import Simulator
 from naive_policy import NaivePolicy
+<<<<<<< Updated upstream
 from dqn_policy import DQNTrainer
 from dqn_emb_policy import DQNEmbTrainer
 from dqn_lookhead_policy import DQNLookaheadTrainer
 from actor_critic_policy import ActorCriticPolicy
+=======
+#from dqn_policy import DQNTrainer
+#from dqn_emb_policy import DQNEmbTrainer
+#from dqn_lookhead_policy import DQNLookaheadTrainer
+#from actor_critic_policy import ActorCriticPolicy
+#from value_lookhead_policy import ValueLookaheadPolicy
+#from value_lookhead_emb_policy import ValueLookaheadEmbPolicy
+
+>>>>>>> Stashed changes
 from primal_dual_policy import PrimalDual
 from reward_manager import RewardManager
 from evaluator import Evaluator
 from visual import Visual
+<<<<<<< Updated upstream
 from dataset_simulator import DatasetSimulator
 
 def main(args):
@@ -22,8 +33,56 @@ def main(args):
         args.coord_bounds = dataset_sim._coord_bounds
     else:
         dataset_sim = None
+=======
+from dataset_simulator_Mecalux import DatasetSimulator
+
+
+# mkdir policies_loc_1
+# python code/main.py --num_skus 2 --num_inv_nodes 2 --policy primal --episodes 512 --max_inv_prod 20 --save_dir policies_loc_1/primal_loc_1
+# python code/main.py --num_skus 2 --num_inv_nodes 2 --eval --eval_episodes 1 --policy_dir policies_loc_1 --vis
+
+# python code/main.py --num_skus 20 --num_inv_nodes 10 --policy primal --episodes 512 --max_inv_prod 20 --save_dir policies_loc_Sarah/primal_loc_Sarah
+# python code/main.py --num_skus 20 --num_inv_nodes 10 --eval --eval_episodes 1 --policy_dir policies_loc_Sarah --vis
+
+# python code/main.py --use_dataset --val_eval --policy primal --episodes 512 --save_dir policies_loc_Sarah/primal_loc_Sarah
+
+def main(args):
+
+    # Initialize the reward manager
+    reward_man = RewardManager(args)
+    
+    if args.use_dataset: # check if we are using a dataset
+        if args.val_eval: # check if we are using the evaluation set
+            #dataset_sim = TestDatasetSimulator(args) # use the test dataset simulator
+            dataset_sim = DatasetSimulator(
+                                node_file="data/node.csv",
+                                customer_file="data/region.csv",
+                                sales_order_file="data/salesorder.csv",
+                                order_line_file="data/salesorderline.csv",
+                                inventory_file="data/inventory.csv"
+                            )
+            
+        else:
+            dataset_sim = DatasetSimulator(
+                                node_file="data/node.csv",
+                                customer_file="data/region.csv",
+                                sales_order_file="data/salesorder.csv",
+                                order_line_file="data/salesorderline.csv",
+                                inventory_file="data/inventory.csv"
+                            )
+
+        args.num_skus = dataset_sim.num_skus # set the number of SKUs to the number of SKUs in the dataset
+        args.max_inv_prod = args.ds_max_stock
+        args.coord_bounds = dataset_sim.coord_bounds
+        reward_man._reward_scale_factor = 1/dataset_sim._max_dist
+    
+    else:
+        dataset_sim = None # no dataset simulator
+
+>>>>>>> Stashed changes
 
     if args.eval:
+        print("Evaluating policies.")
         sim = Simulator(args, None, dataset_sim)
         if args.vis:
             visual = Visual(args, sim._inv_nodes)
@@ -56,8 +115,6 @@ def main(args):
 
         # Create the simulator
         sim = Simulator(args, policy, dataset_sim)
-        
-        # Run the simulation
         sim.run()
 
 if __name__ == "__main__":
