@@ -2,12 +2,6 @@ import argparse
 
 from simulator import Simulator
 from naive_policy import NaivePolicy
-<<<<<<< Updated upstream
-from dqn_policy import DQNTrainer
-from dqn_emb_policy import DQNEmbTrainer
-from dqn_lookhead_policy import DQNLookaheadTrainer
-from actor_critic_policy import ActorCriticPolicy
-=======
 #from dqn_policy import DQNTrainer
 #from dqn_emb_policy import DQNEmbTrainer
 #from dqn_lookhead_policy import DQNLookaheadTrainer
@@ -15,25 +9,10 @@ from actor_critic_policy import ActorCriticPolicy
 #from value_lookhead_policy import ValueLookaheadPolicy
 #from value_lookhead_emb_policy import ValueLookaheadEmbPolicy
 
->>>>>>> Stashed changes
 from primal_dual_policy import PrimalDual
 from reward_manager import RewardManager
 from evaluator import Evaluator
 from visual import Visual
-<<<<<<< Updated upstream
-from dataset_simulator import DatasetSimulator
-
-def main(args):
-    reward_man = RewardManager(args)
-    
-    if args.use_dataset:
-        dataset_sim = DatasetSimulator(args)
-        args.num_skus = dataset_sim.num_skus
-        args.max_inv_prod = args.ds_max_stock
-        args.coord_bounds = dataset_sim._coord_bounds
-    else:
-        dataset_sim = None
-=======
 from dataset_simulator_Mecalux import DatasetSimulator
 
 
@@ -44,7 +23,7 @@ from dataset_simulator_Mecalux import DatasetSimulator
 # python code/main.py --num_skus 20 --num_inv_nodes 10 --policy primal --episodes 512 --max_inv_prod 20 --save_dir policies_loc_Sarah/primal_loc_Sarah
 # python code/main.py --num_skus 20 --num_inv_nodes 10 --eval --eval_episodes 1 --policy_dir policies_loc_Sarah --vis
 
-# python code/main.py --use_dataset --val_eval --policy primal --episodes 512 --save_dir policies_loc_Sarah/primal_loc_Sarah
+# python code/main.py --use_dataset --eval --policy primal --episodes 512 --save_dir policies_loc_Sarah/primal_loc_Sarah
 
 def main(args):
 
@@ -79,7 +58,6 @@ def main(args):
     else:
         dataset_sim = None # no dataset simulator
 
->>>>>>> Stashed changes
 
     if args.eval:
         print("Evaluating policies.")

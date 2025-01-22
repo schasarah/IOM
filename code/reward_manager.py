@@ -15,15 +15,9 @@ class RewardManager:
         """Get current reward.
             NOTE: This is called before the fulfillment decision in a timestep.
         """
-<<<<<<< Updated upstream
-        inv_fulfill = fulfill_plan.get_fulfillment(inv_node.inv_node_id)
-        dist = self._reward_scale_factor  * inv_node.loc.get_distance(demand_node.loc)
-
-=======
         inv_fulfill = fulfill_plan.get_fulfillment(inv_node.inv_node_id) # Get fulfillment for this inventory node
         dist = self._reward_scale_factor  * inv_node.loc.get_distance(demand_node.loc) # Distance between inventory and demand node
         
->>>>>>> Stashed changes
         if inv_fulfill:
             return -dist * self.args.reward_alpha ** inv_fulfill.inv.inv_size
         else:
